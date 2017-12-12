@@ -161,15 +161,15 @@ namespace triangles
 
                       var light = new Vector3(-50, 50, 0);
                       var toLight = Vector3.Normalize(light - position);
-                      var diffuse = new Vector3(0.3f, 0.3f, 0.3f) * Math.Max((Vector3.Dot(normal, toLight)), 0);
+                      var diffuse =  Math.Max((Vector3.Dot(normal, toLight)), 0);
 
-                      var eye = new Vector3(0, 0, -50);
+                      var eye = new Vector3(0, 0, 0);
                       var viewDir = Vector3.Normalize(eye - position);
                       var specularDir = 2 * Vector3.Dot(toLight, normal) * normal - toLight;
                       specularDir = Vector3.Normalize(specularDir);
-                      var specular = new Vector3(0.7f, 0.7f, 0.7f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 100);
+                      var specular = new Vector3(1f, 1f, 1f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 70);
 
-                      var c = colorBuffer[i] + specular + diffuse;
+                      var c = colorBuffer[i] * diffuse + colorBuffer[i] + specular;
                       DrawPixel(i, Color.FromScRgb(1, c.X, c.Y, c.Z));
                   }
 
