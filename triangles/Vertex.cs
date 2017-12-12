@@ -55,7 +55,7 @@ namespace triangles
             Matrix4x4.Invert(m, out var mat);
             mat = Matrix4x4.Transpose(mat);
             
-            var res = Vector4.Transform(Position, m * project);
+            var res = Vector4.Transform(Position, project);
             var pos = new Vector3(res.X / res.W, res.Y / res.W, res.W);
 
             return new Vertex(pos, Color, TextureUv,  Vector3.TransformNormal(Normal, mat));

@@ -37,9 +37,6 @@ namespace triangles
             var rightColor = Lerp(topRight, bottomRight, topToBottom);
             var centerColor = Vector3.Lerp(leftColor, rightColor, leftToRight);
             return centerColor / 255;
-
-            var c = image.GetPixel((int)(u * (image.Width-1)), (int)(v * image.Height));
-            return new Vector3(c.R/255f, c.G / 255f, c.B / 255f);
         }
 
         private Vector3 Lerp(Color a, Color b, float val)
