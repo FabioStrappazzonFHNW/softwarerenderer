@@ -46,17 +46,32 @@ namespace triangles
             }
         }
 
+        public Vector3 getNormal(float u, float v)
+        {
+            var normal = (A.HNormal + u * (B.HNormal - A.HNormal) + v * (C.HNormal - A.HNormal));
+            normal /= normal.W;
+            return new Vector3(normal.X, normal.Y, normal.Z);
+        }
+
+        public Vector3 getPosition(float u, float v)
+        {
+            var pos = (A.HPosition + u * (B.HPosition - A.HPosition) + v * (C.HPosition - A.HPosition));
+            pos /= pos.W;
+            return new Vector3(pos.X, pos.Y, pos.Z);
+        }
+
         public Vector3 getColor(float u, float v)
         {
+            
             var w = Texture.wall;
-            var pos = (A.HTextureUv + u * (B.HTextureUv - A.HTextureUv) + v * (C.HTextureUv - A.HTextureUv));
-            pos /= pos.Z;
-            return w.getColor(pos.X, pos.Y);
+            var uvPos = (A.HTextureUv + u * (B.HTextureUv - A.HTextureUv) + v * (C.HTextureUv - A.HTextureUv));
+            uvPos /= uvPos.Z;
+            var c =  w.getColor(uvPos.X, uvPos.Y);
 
 
             var col = (A.HColor + u * (B.HColor - A.HColor) + v * (C.HColor - A.HColor));
             col /= col.W;
-            return new Vector3(col.X, col.Y, col.Z);
+            return new Vector3(col.X, col.Y, col.Z) * c;
         }
 
         public Triangle(Vertex a, Vertex b, Vertex c)

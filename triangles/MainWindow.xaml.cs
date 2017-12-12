@@ -95,7 +95,7 @@ namespace triangles
                 0, 0, 0, 0,
                 0, 0, 1, 0));
 
-            var allTransforms = rotate * moveBack * project;
+            var allTransforms = rotate * moveBack;
             frame++;
             canvas.Children.Clear();
             colorMod = 0;
@@ -104,9 +104,9 @@ namespace triangles
             {
                 
                 Triangle t = new Triangle(
-                    Points[(int)index.X].Project(allTransforms),
-                    Points[(int)index.Y].Project(allTransforms),
-                    Points[(int)index.Z].Project(allTransforms));
+                    Points[(int)index.X].Project(allTransforms, project),
+                    Points[(int)index.Y].Project(allTransforms, project),
+                    Points[(int)index.Z].Project(allTransforms, project));
                 if (t.IsFacingCamera)
                 {
                     var minX = Math.Min(Math.Min(t.A.Position.X, t.B.Position.X), t.C.Position.X);
@@ -145,9 +145,9 @@ namespace triangles
             {
 
                 Triangle t = new Triangle(
-                    Points[(int)index.X].Project(allTransforms),
-                    Points[(int)index.Y].Project(allTransforms),
-                    Points[(int)index.Z].Project(allTransforms));
+                    Points[(int)index.X].Project(allTransforms, project),
+                    Points[(int)index.Y].Project(allTransforms, project),
+                    Points[(int)index.Z].Project(allTransforms, project));
                 if (t.IsFacingCamera)
                 {
                     var minX = Math.Min(Math.Min(t.A.Position.X, t.B.Position.X), t.C.Position.X);
@@ -173,7 +173,31 @@ namespace triangles
                                 float depth = t.A.Position.Z + u * (t.B.Position.Z - t.A.Position.Z) + v * (t.C.Position.Z - t.A.Position.Z);
                                 if (depth > 3.6 && depthBuffer[w * y + x] == depth)
                                 {
-                                    Vector3 c = t.getColor(u, v);
+                                    var c = t.getColor(u, v);
+                                    var normal = t.getNormal(u, v);
+                                    var position = t.getPosition(u, v);
+
+                                    var light = new Vector3(-5, 5, 0);
+                                    
+                                    var toLight = Vector3.Normalize(light - position);
+                                    var diffuse = new Vector3(0.5f, 0.5f, 0.5f) * Math.Max((Vector3.Dot(normal, toLight)) , 0);
+
+                                    
+                                    var eye = new Vector3(0, 0, -5);
+                                    var viewDir = Vector3.Normalize(eye - position);
+                                    var specularDir = 2 * Vector3.Dot(toLight, normal) * normal - toLight;
+                                    specularDir = Vector3.Normalize(specularDir);
+                                    
+                                    var specular =
+                                        new Vector3(0.5f, 0.5f, 0.5f)
+                                        * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 40);
+
+
+
+                                    
+                                    c = c + specular + diffuse;
+
+
                                     DrawPixel(x, y, Color.FromScRgb(1, c.X, c.Y, c.Z));
                                 }
                             }

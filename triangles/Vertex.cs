@@ -10,8 +10,22 @@ namespace triangles
     class Vertex
     {
         public Vector3 Position;
+        public Vector4 HPosition
+        {
+            get
+            {
+                return new Vector4(Position / Position.Z, 1 / Position.Z);
+            }
+        }
         public Vector3 Color;
         public Vector3 Normal;
+        public Vector4 HNormal
+        {
+            get
+            {
+                return new Vector4(Normal / Position.Z, 1 / Position.Z);
+            }
+        }
         public Vector4 HColor
         {
             get
@@ -36,15 +50,15 @@ namespace triangles
             Normal = normal;
         }
 
-        public Vertex Project(Matrix4x4 m)
+        public Vertex Project(Matrix4x4 m, Matrix4x4 project)
         {
             Matrix4x4.Invert(m, out var mat);
             mat = Matrix4x4.Transpose(mat);
             
-            var res = Vector4.Transform(Position, m);
+            var res = Vector4.Transform(Position, m * project);
             var pos = new Vector3(res.X / res.W, res.Y / res.W, res.W);
 
-            return new Vertex(pos, Color, TextureUv, Vector3.TransformNormal(Normal, mat));
+            return new Vertex(pos, Color, TextureUv,  Vector3.TransformNormal(Normal, mat));
         }
     }
 }
