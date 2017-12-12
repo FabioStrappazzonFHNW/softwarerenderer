@@ -4,6 +4,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace triangles
 {
@@ -151,30 +152,30 @@ namespace triangles
                     }
                 }
             }
-
-            for (int i = 0; i < w*h;i++) {
-                if(depthBuffer[i] == float.MaxValue)
+            Parallel.For(0, w * h, i =>
+              {
+                if(depthBuffer[i] != float.MaxValue)
                 {
-                    continue;
-                }
+                      var normal = normalBuffer[i];
+                      var position = positionBuffer[i];
 
-                var normal = normalBuffer[i];
-                var position = positionBuffer[i];
+                      var light = new Vector3(-50, 50, 0);
+                      var toLight = Vector3.Normalize(light - position);
+                      var diffuse = new Vector3(0.3f, 0.3f, 0.3f) * Math.Max((Vector3.Dot(normal, toLight)), 0);
 
-                var light = new Vector3(-50, 50, 0);
-                var toLight = Vector3.Normalize(light - position);
-                var diffuse = new Vector3(0.3f, 0.3f, 0.3f) * Math.Max((Vector3.Dot(normal, toLight)), 0);
+                      var eye = new Vector3(0, 0, -50);
+                      var viewDir = Vector3.Normalize(eye - position);
+                      var specularDir = 2 * Vector3.Dot(toLight, normal) * normal - toLight;
+                      specularDir = Vector3.Normalize(specularDir);
+                      var specular = new Vector3(0.7f, 0.7f, 0.7f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 100);
 
-                var eye = new Vector3(0, 0, -50);
-                var viewDir = Vector3.Normalize(eye - position);
-                var specularDir = 2 * Vector3.Dot(toLight, normal) * normal - toLight;
-                specularDir = Vector3.Normalize(specularDir);
-                var specular = new Vector3(0.7f, 0.7f, 0.7f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 100);
+                      var c = colorBuffer[i] + specular + diffuse;
+                      DrawPixel(i, Color.FromScRgb(1, c.X, c.Y, c.Z));
+                  }
 
-                var c = colorBuffer[i] + specular + diffuse;
-                DrawPixel(i, Color.FromScRgb(1, c.X, c.Y, c.Z));
-
-            }
+                
+              });
+            
             bitmap.Lock();
             bitmap.WritePixels(new Int32Rect(0, 0, w, h), pixels, w*3, 0);
             bitmap.Unlock();
