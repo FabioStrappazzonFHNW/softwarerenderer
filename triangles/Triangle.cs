@@ -22,19 +22,30 @@ namespace triangles
                 return Vector3.Cross(new Vector3(AB, 0), new Vector3(AC, 0)).Z>=0;
             }
         }
+        public Triangle PerspectiveDivision()
+        {
+            return new Triangle(
+            A.PerspectiveDivision(),
+            B.PerspectiveDivision(),
+            C.PerspectiveDivision());
+        }
+        public Triangle Project(Matrix4x4 m)
+        {
+            return new Triangle(A.Project(m), B.Project(m), C.Project(m));
+        }
 
         public Vector2 AB
         {
             get
             {
-                return new Vector2((float)B.PosProject.X - (float)A.PosProject.X, (float)B.PosProject.Y - (float)A.PosProject.Y);
+                return new Vector2((float)B.Position.X - (float)A.Position.X, (float)B.Position.Y - (float)A.Position.Y);
             }
         }
         public Vector2 AC
         {
             get
             {
-                return new Vector2((float)C.PosProject.X - (float)A.PosProject.X, (float)C.PosProject.Y - (float)A.PosProject.Y);
+                return new Vector2((float)C.Position.X - (float)A.Position.X, (float)C.Position.Y - (float)A.Position.Y);
             }
         }
 
@@ -56,13 +67,6 @@ namespace triangles
         public Vector3 getPosition(float u, float v)
         {
             var pos = (A.HPosition + u * (B.HPosition - A.HPosition) + v * (C.HPosition - A.HPosition));
-            pos /= pos.W;
-            return new Vector3(pos.X, pos.Y, pos.Z);
-        }
-
-        public Vector3 getPosP(float u, float v)
-        {
-            var pos = (A.HPosProject + u * (B.HPosProject - A.HPosProject) + v * (C.HPosProject - A.HPosProject));
             pos /= pos.W;
             return new Vector3(pos.X, pos.Y, pos.Z);
         }

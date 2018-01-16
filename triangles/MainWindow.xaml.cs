@@ -102,27 +102,57 @@ namespace triangles
                 0, 0, 1, 0));
 
             var allTransforms = rotate * moveBack;
-            var transformsWithProject = allTransforms * project;
             frame++;
+            List<Triangle> triangles = new List<Triangle>();
+            float zPlane = 3.7f;
 
-            
             foreach (var index in TriangleIdx)
             {
 
-                Triangle t = new Triangle(
-                    Points[(int)index.X].Project(allTransforms, transformsWithProject),
-                    Points[(int)index.Y].Project(allTransforms, transformsWithProject),
-                    Points[(int)index.Z].Project(allTransforms, transformsWithProject));
+                var a = Points[(int)index.X].Project(allTransforms);
+                var b = Points[(int)index.Y].Project(allTransforms);
+                var c = Points[(int)index.Z].Project(allTransforms);
+                List<Vertex> verts = new List<Vertex>();
+                if (a.Position.Z > zPlane)
+                {
+                    verts.Add(a);
+                }
+                intersectPlane(a, b, zPlane, verts);
+                if (b.Position.Z > zPlane)
+                {
+                    verts.Add(b);
+                }
+                intersectPlane(b, c, zPlane, verts);
+                if (c.Position.Z > zPlane)
+                {
+                    verts.Add(c);
+                }
+                intersectPlane(c, a, zPlane, verts);
 
+                if (verts.Count == 3)
+                {
+                    triangles.Add(new Triangle(verts[0], verts[1], verts[2]));
+                }else if(verts.Count == 4)
+                {
+                    triangles.Add(new Triangle(verts[0], verts[1], verts[2]));
+                    triangles.Add(new Triangle(verts[0], verts[2], verts[3]));
+
+                }
+            }
+
+            foreach(Triangle tr in triangles) {
+
+                var t = tr.Project(project).PerspectiveDivision();
+                
                 if (t.IsFacingCamera)
                 {
-                    var minX = Math.Min(Math.Min(t.A.PosProject.X, t.B.PosProject.X), t.C.PosProject.X);
+                    var minX = Math.Min(Math.Min(t.A.Position.X, t.B.Position.X), t.C.Position.X);
                     minX = Math.Max(0, minX);
-                    var maxX = Math.Max(Math.Max(t.A.PosProject.X, t.B.PosProject.X), t.C.PosProject.X);
+                    var maxX = Math.Max(Math.Max(t.A.Position.X, t.B.Position.X), t.C.Position.X);
                     maxX = Math.Min(w, maxX);
-                    var minY = Math.Min(Math.Min(t.A.PosProject.Y, t.B.PosProject.Y), t.C.PosProject.Y);
+                    var minY = Math.Min(Math.Min(t.A.Position.Y, t.B.Position.Y), t.C.Position.Y);
                     minY = Math.Max(0, minY);
-                    var maxY = Math.Max(Math.Max(t.A.PosProject.Y, t.B.PosProject.Y), t.C.PosProject.Y);
+                    var maxY = Math.Max(Math.Max(t.A.Position.Y, t.B.Position.Y), t.C.Position.Y);
                     maxY = Math.Min(h, maxY);
 
                     for (int y = (int)minY; y < maxY; y++)
@@ -130,19 +160,21 @@ namespace triangles
                         var determinant = t.Determinant;
                         for (int x = (int)minX; x < maxX; x++)
                         {
-                            Vector2 ap = new Vector2(x - (float)t.A.PosProject.X, y - (float)t.A.PosProject.Y);
+                            Vector2 ap = new Vector2(x - (float)t.A.Position.X, y - (float)t.A.Position.Y);
                             var u = determinant * (t.AC.Y * ap.X - t.AC.X * ap.Y);
                             var v = determinant * (-t.AB.Y * ap.X + t.AB.X * ap.Y);
+
                             if (u >= 0 && v >= 0 && (u + v) < 1)
                             {
-                                float depth = t.getPosition(u, v).Z;
-                                if (depth > 3.6 && depthBuffer[w * y + x] > depth)
+                                var pos = tr.getPosition(u, v);
+                                float depth = pos.Z;
+                                var bufferIndex = w * y + x;
+                                if (depthBuffer[bufferIndex] > depth)
                                 {
-                                    var bufferIndex = w * y + x;
                                     depthBuffer[bufferIndex] = depth;
-                                    normalBuffer[bufferIndex] = t.getNormal(u, v);
-                                    positionBuffer[bufferIndex] = t.getPosition(u, v);
-                                    colorBuffer[bufferIndex] = t.getColor(u, v);
+                                    normalBuffer[bufferIndex] = tr.getNormal(u, v);
+                                    positionBuffer[bufferIndex] = pos;
+                                    colorBuffer[bufferIndex] = tr.getColor(u, v);
 
                                 }
                             }
@@ -168,8 +200,8 @@ namespace triangles
                       specularDir = Vector3.Normalize(specularDir);
                       var specular = new Vector3(0.8f, 0.8f, 0.8f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 50);
                       var col = colorBuffer[i];
-                      var c =  diffuse*col+specular;
-                      //c = specular;
+                      var c = new Vector3(0.1f, 0.1f, 0.1f)*col+diffuse*col+specular;
+                      c = new Vector3(0.1f, 0.1f, 0.1f) * col;
                       DrawPixel(i, Color.FromScRgb(1, c.X, c.Y, c.Z));
                   }
 
@@ -204,6 +236,22 @@ namespace triangles
             pixels[3*i] = color.R;
             pixels[3*i+1] = color.G;
             pixels[3*i+2] = color.B;
+        }
+
+        private void intersectPlane(Vertex a, Vertex b, float zPlane, List<Vertex> verts)
+        {
+            var dir = b.Position - a.Position;
+            var planeN = new Vector3(0, 0, 1);
+            if (Vector3.Dot(dir, planeN) != 0)
+            {
+                var planeP = new Vector3(0, 0, zPlane);
+                var distance = Vector3.Dot((planeP - a.Position), planeN) / Vector3.Dot(dir, planeN);
+                if (distance > 0 && distance < 1)
+                {
+                    var point = Vertex.Lerp(a, b, distance);
+                    verts.Add(point);
+                }
+            }
         }
     }
 }
