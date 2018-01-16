@@ -105,8 +105,7 @@ namespace triangles
             var transformsWithProject = allTransforms * project;
             frame++;
 
-
-            List<Triangle> triangles = new List<Triangle>();
+            
             foreach (var index in TriangleIdx)
             {
 
@@ -114,7 +113,7 @@ namespace triangles
                     Points[(int)index.X].Project(allTransforms, transformsWithProject),
                     Points[(int)index.Y].Project(allTransforms, transformsWithProject),
                     Points[(int)index.Z].Project(allTransforms, transformsWithProject));
-                triangles.Add(t);
+
                 if (t.IsFacingCamera)
                 {
                     var minX = Math.Min(Math.Min(t.A.Position.X, t.B.Position.X), t.C.Position.X);
@@ -159,17 +158,17 @@ namespace triangles
                       var normal = normalBuffer[i];
                       var position = positionBuffer[i];
 
-                      var light = new Vector3(-50, 50, 0);
+                      var light = new Vector3(6, -10, -5);
                       var toLight = Vector3.Normalize(light - position);
                       var diffuse =  Math.Max((Vector3.Dot(normal, toLight)), 0);
 
                       var eye = new Vector3(0, 0, 0);
                       var viewDir = Vector3.Normalize(eye - position);
-                      var specularDir = 2 * Vector3.Dot(toLight, normal) * normal - toLight;
+                      var specularDir = normal * (2 * Vector3.Dot(normal, toLight)) - toLight;
                       specularDir = Vector3.Normalize(specularDir);
-                      var specular = new Vector3(1f, 1f, 1f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 70);
-
-                      var c = colorBuffer[i] * diffuse + colorBuffer[i] + specular;
+                      var specular = new Vector3(0.8f, 0.8f, 0.8f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 50);
+                      var col = colorBuffer[i];
+                      var c = col * 0.1f + col * diffuse + specular;
                       DrawPixel(i, Color.FromScRgb(1, c.X, c.Y, c.Z));
                   }
 
