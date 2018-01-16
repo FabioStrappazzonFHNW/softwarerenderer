@@ -116,13 +116,13 @@ namespace triangles
 
                 if (t.IsFacingCamera)
                 {
-                    var minX = Math.Min(Math.Min(t.A.Position.X, t.B.Position.X), t.C.Position.X);
+                    var minX = Math.Min(Math.Min(t.A.PosProject.X, t.B.PosProject.X), t.C.PosProject.X);
                     minX = Math.Max(0, minX);
-                    var maxX = Math.Max(Math.Max(t.A.Position.X, t.B.Position.X), t.C.Position.X);
+                    var maxX = Math.Max(Math.Max(t.A.PosProject.X, t.B.PosProject.X), t.C.PosProject.X);
                     maxX = Math.Min(w, maxX);
-                    var minY = Math.Min(Math.Min(t.A.Position.Y, t.B.Position.Y), t.C.Position.Y);
+                    var minY = Math.Min(Math.Min(t.A.PosProject.Y, t.B.PosProject.Y), t.C.PosProject.Y);
                     minY = Math.Max(0, minY);
-                    var maxY = Math.Max(Math.Max(t.A.Position.Y, t.B.Position.Y), t.C.Position.Y);
+                    var maxY = Math.Max(Math.Max(t.A.PosProject.Y, t.B.PosProject.Y), t.C.PosProject.Y);
                     maxY = Math.Min(h, maxY);
 
                     for (int y = (int)minY; y < maxY; y++)
@@ -130,12 +130,12 @@ namespace triangles
                         var determinant = t.Determinant;
                         for (int x = (int)minX; x < maxX; x++)
                         {
-                            Vector2 ap = new Vector2(x - (float)t.A.Position.X, y - (float)t.A.Position.Y);
+                            Vector2 ap = new Vector2(x - (float)t.A.PosProject.X, y - (float)t.A.PosProject.Y);
                             var u = determinant * (t.AC.Y * ap.X - t.AC.X * ap.Y);
                             var v = determinant * (-t.AB.Y * ap.X + t.AB.X * ap.Y);
                             if (u >= 0 && v >= 0 && (u + v) < 1)
                             {
-                                float depth = t.A.Position.Z + u * (t.B.Position.Z - t.A.Position.Z) + v * (t.C.Position.Z - t.A.Position.Z);
+                                float depth = t.getPosition(u, v).Z;
                                 if (depth > 3.6 && depthBuffer[w * y + x] > depth)
                                 {
                                     var bufferIndex = w * y + x;
@@ -158,17 +158,18 @@ namespace triangles
                       var normal = normalBuffer[i];
                       var position = positionBuffer[i];
 
-                      var light = new Vector3(6, -10, -5);
+                      var light = new Vector3(-1, 0, -5);
                       var toLight = Vector3.Normalize(light - position);
                       var diffuse =  Math.Max((Vector3.Dot(normal, toLight)), 0);
 
                       var eye = new Vector3(0, 0, 0);
-                      var viewDir = Vector3.Normalize(eye - position);
+                      var viewDir = Vector3.Normalize(position-eye);
                       var specularDir = normal * (2 * Vector3.Dot(normal, toLight)) - toLight;
                       specularDir = Vector3.Normalize(specularDir);
                       var specular = new Vector3(0.8f, 0.8f, 0.8f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 50);
                       var col = colorBuffer[i];
-                      var c = col * 0.1f + col * diffuse + specular;
+                      var c =  diffuse*col+specular;
+                      //c = specular;
                       DrawPixel(i, Color.FromScRgb(1, c.X, c.Y, c.Z));
                   }
 
