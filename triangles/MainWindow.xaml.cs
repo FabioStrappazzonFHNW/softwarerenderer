@@ -166,6 +166,7 @@ namespace triangles
 
                             if (u >= 0 && v >= 0 && (u + v) < 1)
                             {
+
                                 var pos = tr.getPosition(u, v);
                                 float depth = pos.Z;
                                 var bufferIndex = w * y + x;
@@ -190,7 +191,7 @@ namespace triangles
                       var normal = normalBuffer[i];
                       var position = positionBuffer[i];
 
-                      var light = new Vector3(-1, 0, -5);
+                      var light = new Vector3(-10, 10, -5);
                       var toLight = Vector3.Normalize(light - position);
                       var diffuse =  Math.Max((Vector3.Dot(normal, toLight)), 0);
 
@@ -201,7 +202,7 @@ namespace triangles
                       var specular = new Vector3(0.8f, 0.8f, 0.8f) * (float)Math.Pow(Math.Max(0.0, -Vector3.Dot(specularDir, viewDir)), 50);
                       var col = colorBuffer[i];
                       var c = new Vector3(0.1f, 0.1f, 0.1f)*col+diffuse*col+specular;
-                      c = new Vector3(0.1f, 0.1f, 0.1f) * col;
+
                       DrawPixel(i, Color.FromScRgb(1, c.X, c.Y, c.Z));
                   }
 

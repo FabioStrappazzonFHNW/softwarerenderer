@@ -14,7 +14,7 @@ namespace triangles
         {
             get
             {
-                return new Vector4(Position / W, 1/ W);
+                return new Vector4(Position / Position.Z, 1/ Position.Z);
             }
         }
         public Vector3 Color;
@@ -23,14 +23,14 @@ namespace triangles
         {
             get
             {
-                return new Vector4(Normal / W, 1 / W);
+                return new Vector4(Normal / Position.Z, 1 / Position.Z);
             }
         }
         public Vector4 HColor
         {
             get
             {
-                return new Vector4(Color / W, 1 / W);
+                return new Vector4(Color / Position.Z, 1 / Position.Z);
             }
         }
         public Vector2 TextureUv;
@@ -38,7 +38,7 @@ namespace triangles
         {
             get
             {
-                return new Vector3(TextureUv / W, 1 / W);
+                return new Vector3(TextureUv / Position.Z, 1 / Position.Z);
             }
         }
         private float W;
@@ -65,6 +65,7 @@ namespace triangles
 
         public static Vertex Lerp(Vertex a, Vertex b, float amount)
         {
+
             var pos = Vector4.Lerp(a.HPosition, b.HPosition, amount);
             var col = Vector4.Lerp(a.HColor, b.HColor, amount);
             var uv = Vector3.Lerp(a.HTextureUv, b.HTextureUv, amount);
